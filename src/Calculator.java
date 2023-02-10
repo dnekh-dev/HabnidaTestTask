@@ -1,86 +1,101 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class Calculator implements Calculable {
 
-    private int a;
-    private int b;
-    private int c;
     private int result;
 
-    List<Integer> operands = new ArrayList<>();
-    List<Character> operators = new ArrayList<>();
+    private List<Integer> operands = new ArrayList<>();
+    private List<Character> operators = new ArrayList<>();
+    private Map<Character, Integer> priorityOfSings = new HashMap<>();
 
-    /*The method calculationOfUserInput takes two input lists, operands and operators, and returns
-     the result of a mathematical expression represented by the inputs. It uses two stacks,
-     operandStack and operatorStack, to store operands and operators, respectively.
 
-    The method first loops through the operands list and pushes each operand onto the operandStack.
-    For each iteration, if the current index i is less than the number of elements in the operators list,
-    the method retrieves the current operator and performs the following operations:
+    //This method does calculations in the case when size of List 'operands' equals 3.
+    public int calculateExpressionConsistingThreeOperands(List<Integer> operands, List<Character> operators, Map<Character, Integer> priorityOfSings) {
+        int meow = 0;
+        for (Integer num : priorityOfSings.values()) {
+            meow += num;
+        }
 
-    While the operatorStack is not empty and the current operator has lower precedence than the operator
-    at the top of the stack (as determined by the hasHigherPrecedence method), the method performs the operation
-    at the top of the stack (using the performOperation method), updates the operandStack and continues the loop.
-
-    The current operator is then pushed onto the operatorStack.
-
-    Once the loop is finished, the method then repeatedly performs operations from the operatorStack until it is empty
-    and the final result is stored in the operandStack. Finally, the method returns the top value of the operandStack
-    as the result of the expression.
-
-    */
-    @Override
-    public int calculationOfUserInput(List<Integer> operands, List<Character> operators) {
-        Stack<Integer> operandStack = new Stack<>();
-        Stack<Character> operatorStack = new Stack<>();
-
-        for (int i = 0; i < operands.size(); i++) {
-            operandStack.push(operands.get(i));
-            if (i < operators.size()) {
-                char currentOperation = operators.get(i);
-                while (!operatorStack.isEmpty() && hasHigherPrecedence(operatorStack.peek(), currentOperation)) {
-                    int result = performOperation(operatorStack.pop(), operandStack.pop(), operandStack.pop());
-                    operandStack.push(result);
+        //Case for signs with low priority: '+', '-'.
+        if (meow == 2) {
+            int result = operands.get(0);
+            for (int i = 0; i < operators.size(); i++) {
+                char operation = operators.get(i);
+                int number = operands.get(i + 1);
+                switch (operation) {
+                    case '+' -> result += number;
+                    case '-' -> result -= number;
                 }
-                operatorStack.push(currentOperation);
             }
+            return result;
         }
 
-        while (!operatorStack.isEmpty()) {
-            int result = performOperation(operatorStack.pop(), operandStack.pop(), operandStack.pop());
-            operandStack.push(result);
+        //Case for signs with high priority: '*', '/'.
+        if (meow == 4) {
+            int result = operands.get(0);
+            for (int i = 0; i < operators.size(); i++) {
+                char operation = operators.get(i);
+                int number = operands.get(i + 1);
+                switch (operation) {
+                    case '*' -> result *= number;
+                    case '/' -> result /= number;
+                }
+            }
+            return result;
         }
 
-        return operandStack.pop();
+        //Case for mathematical expressions with signs of different priorities
+        if (meow == 3) {
+            int index = -1;
+            for (Map.Entry<Character, Integer> entry : priorityOfSings.entrySet()) {
+                if (entry.getValue() == 2) {
+                    index = operators.indexOf(entry.getKey());
+                    break;
+                }
+            }
+            int result;
+            if (index == 0) {
+                result = performOperation(operators.get(index), operands.get(0), operands.get(1));
+                result = performOperation(operators.get(index + 1), result, operands.get(2));
+            } else if (index == 1) {
+                result = performOperation(operators.get(index), operands.get(1), operands.get(2));
+                result = performOperation(operators.get(index - 1), operands.get(0), result);
+            } else {
+                return -1;
+            }
+            return result;
+        }
+        return -2;
     }
 
-    //In this method we do calculations
-    private static int performOperation(char operation, int secondOperand, int firstOperand) {
-        switch (operation) {
-            case '+' -> {
-                return firstOperand + secondOperand;
-            }
-            case '-' -> {
-                return firstOperand - secondOperand;
-            }
-            case '*' -> {
-                return firstOperand * secondOperand;
-            }
-            case '/' -> {
-                if (secondOperand == 0) {
-                    throw new ArithmeticException("Division by zero");
-                }
-                return firstOperand / secondOperand;
-            }
-        }
-        return 0;
+    //Method for calculations that using for third case in the method above.
+    private static int performOperation(char operator, int operand1, int operand2) {
+        return switch (operator) {
+            case '+' -> operand1 + operand2;
+            case '-' -> operand1 - operand2;
+            case '*' -> operand1 * operand2;
+            case '/' -> operand1 / operand2;
+            default -> -1;
+        };
     }
 
-    //Here we check precedence of math signs that we have in inputted expression by user
-    private static boolean hasHigherPrecedence(char operator1, char operator2) {
-        return (operator1 == '*' || operator1 == '/') && (operator2 == '+' || operator2 == '-');
+    //This method is used to evaluate mathematical expressions consisting of two operands.
+    public int calculateExpressionConsistingTwoOperands(List<Integer> operands, List<Character> operators) {
+        int innerResult = operands.get(0);
+        for (int i = 1; i < operands.size(); i++) {
+            char operator = operators.get(i - 1);
+            int value = operands.get(i);
+            if (operator == '+') {
+                innerResult += value;
+            } else if (operator == '-') {
+                innerResult -= value;
+            } else if (operator == '*') {
+                innerResult *= value;
+            } else if (operator == '/') {
+                innerResult /= value;
+            }
+        }
+        return innerResult;
     }
 
 
@@ -101,28 +116,12 @@ public class Calculator implements Calculable {
         this.operators = operators;
     }
 
-    public int getA() {
-        return a;
+    public Map<Character, Integer> getPriorityOfSings() {
+        return priorityOfSings;
     }
 
-    public void setA(int a) {
-        this.a = a;
-    }
-
-    public int getB() {
-        return b;
-    }
-
-    public void setB(int b) {
-        this.b = b;
-    }
-
-    public int getC() {
-        return c;
-    }
-
-    public void setC(int c) {
-        this.c = c;
+    public void setPriorityOfSings(Map<Character, Integer> priorityOfSings) {
+        this.priorityOfSings = priorityOfSings;
     }
 
     public int getResult() {
