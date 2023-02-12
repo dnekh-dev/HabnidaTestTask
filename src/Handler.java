@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 public class Handler {
     private String userInputInProcessing;
+    private static final String PATTERN = "^-?\\d+\\s[+\\-*/]\\s-?\\d+\\s[+\\-*/]\\s-?\\d+$";
 
 
     //In this method we try to get a string from a user
@@ -14,10 +15,6 @@ public class Handler {
         }
     }
 
-    //This method does not use in this version of app <<<<<<<<<<<<<<<<<<<<<<<<<<<<
-//    public String removeWhitespaces(String input) {
-//        return input.replaceAll("\\s+", "");
-//    }
 
     //This method parses a string has gotten from user and extract integers from the string and put them to the List of integers
     public List<Integer> extractIntegers(String input) {
@@ -104,6 +101,21 @@ public class Handler {
         return setMapOfOperatorsAndTheirPriority;
     }
 
+
+    //This method checks the string against the required format
+    public boolean isMatchingToRequiredPattern(String input) {
+        Pattern pattern = Pattern.compile(PATTERN);
+        Matcher matcher = pattern.matcher(input);
+        return matcher.matches();
+    }
+
+    //This method checks size of List 'numbers' and throw en exception if it returns true.
+    public void checkSizeOfListNumbers(List<Integer> numbers) throws Exception {
+        if (numbers.size() < 2 || numbers.size() > 3) {
+            throw new Exception("The mathematical expression must contain at least two and no more than three numbers.");
+        }
+    }
+
     /*
       Here we check against a given range of numbers from -10 to -1 and from 1 to 10 excluding 0
       and throws custom exception if we find illegal integer.
@@ -115,13 +127,6 @@ public class Handler {
             }
         }
         return true;
-    }
-
-    //This method checking size of List 'numbers' and throw en exception if it returns true.
-    public void checkSizeOfListNumbers(List<Integer> numbers) throws Exception {
-        if (numbers.size() < 2 || numbers.size() > 3) {
-            throw new Exception("The mathematical expression must contain at least two and no more than three numbers.");
-        }
     }
 
 
